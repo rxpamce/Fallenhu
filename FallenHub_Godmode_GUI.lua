@@ -222,6 +222,3 @@ end)
 createButton("Close GUI", function()
 	FallenHub:Destroy()
 end)
-
--- Call functions
-esp()
