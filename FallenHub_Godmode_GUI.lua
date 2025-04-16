@@ -30,49 +30,53 @@ UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.Padding = UDim.new(0, 5)
 
 local function createButton(name, callback)
-	local btn = Instance.new("TextButton")
-	btn.Name = name
-	btn.Parent = Main
-	btn.Size = UDim2.new(1, -20, 0, 40)
-	btn.Position = UDim2.new(0, 10, 0, 0)
-	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	btn.Text = name
-	btn.TextScaled = true
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Parent = Main
+    btn.Size = UDim2.new(1, -20, 0, 40)
+    btn.Position = UDim2.new(0, 10, 0, 0)
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Text = name
+    btn.TextScaled = true
 
-	btn.MouseButton1Click:Connect(callback)
+    -- Make sure the button is clickable
+    btn.MouseButton1Click:Connect(function()
+        callback()
+    end)
 end
 
 -- Fly button
 createButton("Fly", function()
-	loadstring(game:HttpGet("https://pastebin.com/raw/YjHqqzVf"))()
+    loadstring(game:HttpGet("https://pastebin.com/raw/YjHqqzVf"))()
 end)
 
 -- Noclip button
 createButton("Noclip", function()
-	game:GetService("RunService").Stepped:Connect(function()
-		for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-			if part:IsA("BasePart") then
-				part.CanCollide = false
-			end
-		end
-	end)
+    game:GetService("RunService").Stepped:Connect(function()
+        for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end)
 end)
 
 -- ESP button
 createButton("ESP", function()
-	loadstring(game:HttpGet("https://pastebin.com/raw/Jg1M3F3z"))()
+    loadstring(game:HttpGet("https://pastebin.com/raw/Jg1M3F3z"))()
 end)
 
 -- Xray button
 createButton("Xray", function()
-	for _, obj in pairs(workspace:GetDescendants()) do
-		if obj:IsA("BasePart") and not obj:IsDescendantOf(game.Players.LocalPlayer.Character) then
-			obj.Transparency = 0.7
-		end
-	end
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and not obj:IsDescendantOf(game.Players.LocalPlayer.Character) then
+            obj.Transparency = 0.7
+        end
+    end
 end)
+
 -- Close GUI
 createButton("Close GUI", function()
-	FallenHub:Destroy()
+    FallenHub:Destroy()
 end)
