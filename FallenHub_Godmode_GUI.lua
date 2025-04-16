@@ -65,4 +65,14 @@ createButton("ESP", function()
 end)
 
 -- Xray button
-createButton("Xray",
+createButton("Xray", function()
+	for _, obj in pairs(workspace:GetDescendants()) do
+		if obj:IsA("BasePart") and not obj:IsDescendantOf(game.Players.LocalPlayer.Character) then
+			obj.Transparency = 0.7
+		end
+	end
+end)
+-- Close GUI
+createButton("Close GUI", function()
+	FallenHub:Destroy()
+end)
