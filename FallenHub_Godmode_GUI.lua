@@ -3,10 +3,8 @@ local Main = Instance.new("Frame")
 local UICorner = Instance.new("UICorner")
 local Title = Instance.new("TextLabel")
 local UIListLayout = Instance.new("UIListLayout")
-local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
 
 -- GUI Setup
 FallenHub.Name = "FallenHub"
@@ -34,6 +32,7 @@ UIListLayout.Parent = Main
 UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.Padding = UDim.new(0, 5)
 
+-- Function to create buttons
 local function createButton(name, callback)
 	local btn = Instance.new("TextButton")
 	btn.Name = name
@@ -47,6 +46,7 @@ local function createButton(name, callback)
 	btn.MouseButton1Click:Connect(callback)
 end
 
+-- Function to create sliders
 local function createSlider(name, min, max, def, callback)
 	local slider = Instance.new("Frame")
 	local sliderBar = Instance.new("Frame")
@@ -84,10 +84,45 @@ local function createSlider(name, min, max, def, callback)
 	valueLabel.Position = UDim2.new(0, 0, 1, 5)
 end
 
-createButton("Fly", function()
-	loadstring(game:HttpGet("https://raw.githubusercontent.com/USERNAME/REPO/main/fly_script.lua"))()
+-- Function to Teleport to Player
+createButton("Teleport to Player", function()
+	local playerName = game:GetService("Players").LocalPlayer.Name
+	for _, player in pairs(game.Players:GetPlayers()) do
+		if player.Name == playerName then
+			game.Players.LocalPlayer.Character:MoveTo(player.Character:WaitForChild("Head").Position)
+		end
+	end
 end)
 
+-- Fly Button (Modified for Freefly)
+createButton("Fly", function()
+	local bodyVelocity = Instance.new("BodyVelocity")
+	local bodyGyro = Instance.new("BodyGyro")
+
+	local humanoid = LocalPlayer.Character:WaitForChild("Humanoid")
+	local torso = LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+
+	bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
+	bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+	bodyVelocity.Parent = torso
+
+	bodyGyro.MaxTorque = Vector3.new(400000, 400000, 400000)
+	bodyGyro.CFrame = torso.CFrame
+	bodyGyro.Parent = torso
+	
+	-- Hover and Control Mechanism for Fly
+	local function onUpdate()
+		if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+			torso = LocalPlayer.Character.HumanoidRootPart
+			bodyVelocity.Velocity = (Mouse.Hit.p - torso.Position).unit * 50
+		end
+	end
+	
+	-- Attach to update event
+	game:GetService("RunService").Heartbeat:Connect(onUpdate)
+end)
+
+-- Noclip Button
 createButton("Noclip", function()
 	game:GetService("RunService").Stepped:Connect(function()
 		for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
@@ -98,37 +133,37 @@ createButton("Noclip", function()
 	end)
 end)
 
+-- ESP Button
 createButton("ESP", function()
-	loadstring(game:HttpGet("https://raw.githubusercontent.com/USERNAME/REPO/main/esp_script.lua"))()
-end)
+	local espPart = Instance.new("Part")
+	espPart.Size = Vector3.new(1, 1, 1)
+	espPart.Anchored = true
+	espPart.CanCollide = false
+	espPart.Transparency = 0.5
+	espPart.Color = Color3.fromRGB(255, 0, 0)
 
-createButton("Xray", function()
-	for _, obj in pairs(workspace:GetDescendants()) do
-		if obj:IsA("BasePart") and not obj:IsDescendantOf(LocalPlayer.Character) then
-			obj.Transparency = 0.7
-		end
+	-- Add ESP around all players
+	for _, player in pairs(game.Players:GetPlayers()) do
+		local espClone = espPart:Clone()
+		espClone.Parent = workspace
+		espClone.CFrame = player.Character.HumanoidRootPart.CFrame
+		espClone.Anchored = true
 	end
 end)
 
+-- Fullbright Button
 createButton("Fullbright", function()
 	game.Lighting.GlobalShadows = false
 	game.Lighting.Ambient = Color3.fromRGB(255, 255, 255)
 	game.Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
 end)
 
+-- WalkSpeed Slider
 createSlider("WalkSpeed", 16, 100, 16, function(value)
 	LocalPlayer.Character.Humanoid.WalkSpeed = value
 end)
 
-createButton("Teleport to Player", function()
-	local playerName = game:GetService("Players").LocalPlayer.Name
-	for _, player in pairs(game.Players:GetPlayers()) do
-		if player.Name == playerName then
-			game.Players.LocalPlayer.Character:MoveTo(player.Character:WaitForChild("Head").Position)
-		end
-	end
-end)
-
+-- Close GUI
 createButton("Close GUI", function()
 	FallenHub:Destroy()
 end)
