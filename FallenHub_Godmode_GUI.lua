@@ -30,32 +30,52 @@ UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.Padding = UDim.new(0, 5)
 
 local function createButton(name, callback)
-    local btn = Instance.new("TextButton")
-    btn.Name = name
-    btn.Parent = Main
-    btn.Size = UDim2.new(1, -20, 0, 40)
-    btn.Position = UDim2.new(0, 10, 0, 0)
-    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Text = name
-    btn.TextScaled = true
+	local btn = Instance.new("TextButton")
+	btn.Name = name
+	btn.Parent = Main
+	btn.Size = UDim2.new(1, -20, 0, 40)
+	btn.Position = UDim2.new(0, 10, 0, 0)
+	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.Text = name
+	btn.TextScaled = true
 
-    -- Add debugging to check if button is clickable
-    btn.MouseButton1Click:Connect(function()
-        print(name .. " button clicked")  -- Debugging output
-        callback()
-    end)
+	btn.MouseButton1Click:Connect(callback)
 end
 
--- Fly button
+-- Fly
+local flying = false
+local speed = 50
+local bodyVelocity = nil
+
+local function toggleFly()
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if not character or not character:FindFirstChild("Humanoid") then return end
+
+    local humanoid = character:FindFirstChild("Humanoid")
+    if flying then
+        flying = false
+        if bodyVelocity then
+            bodyVelocity:Destroy()
+        end
+        humanoid.PlatformStand = false
+    else
+        flying = true
+        humanoid.PlatformStand = true
+        bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.Parent = character:WaitForChild("HumanoidRootPart")
+    end
+end
+
 createButton("Fly", function()
-    print("Fly button clicked")  -- Debugging output
-    loadstring(game:HttpGet("https://pastebin.com/raw/YjHqqzVf"))()
+    toggleFly()
 end)
 
--- Noclip button
+-- Noclip
 createButton("Noclip", function()
-    print("Noclip button clicked")  -- Debugging output
     game:GetService("RunService").Stepped:Connect(function()
         for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
             if part:IsA("BasePart") then
@@ -65,15 +85,36 @@ createButton("Noclip", function()
     end)
 end)
 
--- ESP button
+-- ESP
+local function createESP(player)
+    local esp = Instance.new("BillboardGui")
+    esp.Parent = player.Character
+    esp.Adornee = player.Character:WaitForChild("Head")
+    esp.Size = UDim2.new(0, 100, 0, 50)
+    esp.StudsOffset = Vector3.new(0, 2, 0)
+    esp.AlwaysOnTop = true
+    esp.ExtentsOffset = Vector3.new(0, 1, 0)
+
+    local label = Instance.new("TextLabel")
+    label.Parent = esp
+    label.BackgroundTransparency = 1
+    label.Text = player.Name
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextStrokeTransparency = 0.8
+    label.TextSize = 14
+    label.Size = UDim2.new(1, 0, 1, 0)
+end
+
 createButton("ESP", function()
-    print("ESP button clicked")  -- Debugging output
-    loadstring(game:HttpGet("https://pastebin.com/raw/Jg1M3F3z"))()
+    game:GetService("Players").PlayerAdded:Connect(function(player)
+        player.CharacterAdded:Connect(function(character)
+            createESP(player)
+        end)
+    end)
 end)
 
--- Xray button
+-- Xray
 createButton("Xray", function()
-    print("Xray button clicked")  -- Debugging output
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj:IsA("BasePart") and not obj:IsDescendantOf(game.Players.LocalPlayer.Character) then
             obj.Transparency = 0.7
@@ -83,6 +124,5 @@ end)
 
 -- Close GUI
 createButton("Close GUI", function()
-    print("Close GUI button clicked")  -- Debugging output
     FallenHub:Destroy()
 end)
