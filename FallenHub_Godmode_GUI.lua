@@ -3,7 +3,6 @@ local Main = Instance.new("Frame")
 local UICorner = Instance.new("UICorner")
 local Title = Instance.new("TextLabel")
 local UIListLayout = Instance.new("UIListLayout")
-local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
@@ -47,44 +46,6 @@ local function createButton(name, callback)
     btn.MouseButton1Click:Connect(callback)
 end
 
-local function createSlider(name, min, max, def, callback)
-    local slider = Instance.new("Frame")
-    local sliderBar = Instance.new("Frame")
-    local knob = Instance.new("TextButton")
-    local valueLabel = Instance.new("TextLabel")
-
-    slider.Name = name
-    slider.Parent = Main
-    slider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    slider.Size = UDim2.new(1, -20, 0, 40)
-    slider.Position = UDim2.new(0, 10, 0, 0)
-
-    sliderBar.Name = "SliderBar"
-    sliderBar.Parent = slider
-    sliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    sliderBar.Size = UDim2.new(1, -20, 0, 5)
-    sliderBar.Position = UDim2.new(0, 10, 0, 15)
-
-    knob.Name = "Knob"
-    knob.Parent = sliderBar
-    knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    knob.Size = UDim2.new(0, 10, 0, 10)
-    knob.Position = UDim2.new((def - min) / (max - min), -5, 0, -2)
-    knob.Text = ""
-    knob.TextButton.MouseButton1Down:Connect(function()
-        -- Add drag logic here
-    end)
-
-    valueLabel.Name = "ValueLabel"
-    valueLabel.Parent = slider
-    valueLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    valueLabel.TextScaled = true
-    valueLabel.Size = UDim2.new(1, 0, 0, 25)
-    valueLabel.Position = UDim2.new(0, 0, 1, 5)
-end
-
--- Function Definitions
 createButton("Fly", function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/rxpamce/FallenHu/main/fly_script.lua"))()
 end)
@@ -117,8 +78,21 @@ createButton("Fullbright", function()
     game.Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
 end)
 
-createSlider("WalkSpeed", 16, 100, 16, function(value)
-    LocalPlayer.Character.Humanoid.WalkSpeed = value
+createButton("WalkSpeed", function()
+    local speed = Instance.new("TextBox")
+    speed.Size = UDim2.new(0, 100, 0, 30)
+    speed.Position = UDim2.new(0.5, -50, 0.5, -15)
+    speed.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    speed.TextColor3 = Color3.fromRGB(0, 0, 0)
+    speed.Text = "16"
+    speed.Parent = FallenHub
+
+    speed.FocusLost:Connect(function()
+        local newSpeed = tonumber(speed.Text)
+        if newSpeed then
+            LocalPlayer.Character.Humanoid.WalkSpeed = newSpeed
+        end
+    end)
 end)
 
 createButton("Teleport to Player", function()
