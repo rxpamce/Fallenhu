@@ -47,10 +47,23 @@ local function createButton(name, callback)
 end
 
 createButton("Fly", function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/rxpamce/FallenHu/main/fly_script.lua"))()
+    -- Fly Script
+    local bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
+    bodyVelocity.Velocity = Vector3.new(0, 50, 0)
+    bodyVelocity.Parent = LocalPlayer.Character.HumanoidRootPart
+
+    game:GetService("UserInputService").InputBegan:Connect(function(input)
+        if input.KeyCode == Enum.KeyCode.Space then
+            bodyVelocity.Velocity = Vector3.new(0, 100, 0)
+        elseif input.KeyCode == Enum.KeyCode.S then
+            bodyVelocity.Velocity = Vector3.new(0, 50, 0)
+        end
+    end)
 end)
 
 createButton("Noclip", function()
+    -- Noclip Script
     game:GetService("RunService").Stepped:Connect(function()
         for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
             if part:IsA("BasePart") then
@@ -61,10 +74,29 @@ createButton("Noclip", function()
 end)
 
 createButton("ESP", function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/rxpamce/FallenHu/main/esp_script.lua"))()
+    -- ESP Script
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local esp = Instance.new("BillboardGui")
+            esp.Parent = player.Character
+            esp.Size = UDim2.new(0, 100, 0, 100)
+            esp.Adornee = player.Character:FindFirstChild("Head")
+            esp.AlwaysOnTop = true
+            esp.StudsOffset = Vector3.new(0, 2, 0)
+            
+            local text = Instance.new("TextLabel")
+            text.Text = player.Name
+            text.Size = UDim2.new(1, 0, 1, 0)
+            text.BackgroundTransparency = 1
+            text.TextColor3 = Color3.fromRGB(255, 255, 255)
+            text.TextScaled = true
+            text.Parent = esp
+        end
+    end
 end)
 
 createButton("Xray", function()
+    -- Xray Script
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj:IsA("BasePart") and not obj:IsDescendantOf(LocalPlayer.Character) then
             obj.Transparency = 0.7
@@ -73,29 +105,19 @@ createButton("Xray", function()
 end)
 
 createButton("Fullbright", function()
+    -- Fullbright Script
     game.Lighting.GlobalShadows = false
     game.Lighting.Ambient = Color3.fromRGB(255, 255, 255)
     game.Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
 end)
 
 createButton("WalkSpeed", function()
-    local speed = Instance.new("TextBox")
-    speed.Size = UDim2.new(0, 100, 0, 30)
-    speed.Position = UDim2.new(0.5, -50, 0.5, -15)
-    speed.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    speed.TextColor3 = Color3.fromRGB(0, 0, 0)
-    speed.Text = "16"
-    speed.Parent = FallenHub
-
-    speed.FocusLost:Connect(function()
-        local newSpeed = tonumber(speed.Text)
-        if newSpeed then
-            LocalPlayer.Character.Humanoid.WalkSpeed = newSpeed
-        end
-    end)
+    -- WalkSpeed Script
+    LocalPlayer.Character.Humanoid.WalkSpeed = 50
 end)
 
 createButton("Teleport to Player", function()
+    -- Teleport to Player Script
     local playerName = game:GetService("Players").LocalPlayer.Name
     for _, player in pairs(game.Players:GetPlayers()) do
         if player.Name == playerName then
