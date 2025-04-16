@@ -40,19 +40,22 @@ local function createButton(name, callback)
     btn.Text = name
     btn.TextScaled = true
 
-    -- Make sure the button is clickable
+    -- Add debugging to check if button is clickable
     btn.MouseButton1Click:Connect(function()
+        print(name .. " button clicked")  -- Debugging output
         callback()
     end)
 end
 
 -- Fly button
 createButton("Fly", function()
+    print("Fly button clicked")  -- Debugging output
     loadstring(game:HttpGet("https://pastebin.com/raw/YjHqqzVf"))()
 end)
 
 -- Noclip button
 createButton("Noclip", function()
+    print("Noclip button clicked")  -- Debugging output
     game:GetService("RunService").Stepped:Connect(function()
         for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
             if part:IsA("BasePart") then
@@ -64,11 +67,13 @@ end)
 
 -- ESP button
 createButton("ESP", function()
+    print("ESP button clicked")  -- Debugging output
     loadstring(game:HttpGet("https://pastebin.com/raw/Jg1M3F3z"))()
 end)
 
 -- Xray button
 createButton("Xray", function()
+    print("Xray button clicked")  -- Debugging output
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj:IsA("BasePart") and not obj:IsDescendantOf(game.Players.LocalPlayer.Character) then
             obj.Transparency = 0.7
@@ -78,5 +83,6 @@ end)
 
 -- Close GUI
 createButton("Close GUI", function()
+    print("Close GUI button clicked")  -- Debugging output
     FallenHub:Destroy()
 end)
