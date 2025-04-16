@@ -47,7 +47,6 @@ local function createButton(name, callback)
 end
 
 createButton("Fly", function()
-    -- Fly Script
     local bodyVelocity = Instance.new("BodyVelocity")
     bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
     bodyVelocity.Velocity = Vector3.new(0, 50, 0)
@@ -63,7 +62,6 @@ createButton("Fly", function()
 end)
 
 createButton("Noclip", function()
-    -- Noclip Script
     game:GetService("RunService").Stepped:Connect(function()
         for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
             if part:IsA("BasePart") then
@@ -74,7 +72,6 @@ createButton("Noclip", function()
 end)
 
 createButton("ESP", function()
-    -- ESP Script
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
             local esp = Instance.new("BillboardGui")
@@ -96,7 +93,6 @@ createButton("ESP", function()
 end)
 
 createButton("Xray", function()
-    -- Xray Script
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj:IsA("BasePart") and not obj:IsDescendantOf(LocalPlayer.Character) then
             obj.Transparency = 0.7
@@ -105,19 +101,16 @@ createButton("Xray", function()
 end)
 
 createButton("Fullbright", function()
-    -- Fullbright Script
     game.Lighting.GlobalShadows = false
     game.Lighting.Ambient = Color3.fromRGB(255, 255, 255)
     game.Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
 end)
 
 createButton("WalkSpeed", function()
-    -- WalkSpeed Script
     LocalPlayer.Character.Humanoid.WalkSpeed = 50
 end)
 
 createButton("Teleport to Player", function()
-    -- Teleport to Player Script
     local playerName = game:GetService("Players").LocalPlayer.Name
     for _, player in pairs(game.Players:GetPlayers()) do
         if player.Name == playerName then
