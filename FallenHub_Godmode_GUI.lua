@@ -76,25 +76,22 @@ local function toggleFly()
         bodyVelocity.Parent = character:WaitForChild("HumanoidRootPart")
         bodyGyro.Parent = character:WaitForChild("HumanoidRootPart")
 
-        -- Kontrol gerakan fly
-        userInputService.InputChanged:Connect(function(input)
+        -- Kontrol pergerakan fly dengan keyboard
+        userInputService.InputBegan:Connect(function(input)
             if flying then
-                local moveDirection = Vector3.new(0, 0, 0)
-                if input.UserInputType == Enum.UserInputType.MouseMovement then
-                    -- Menggerakkan kamera
-                    local camera = game.Workspace.CurrentCamera
-                    local lookAt = camera.CFrame.LookVector
-                    moveDirection = lookAt * speed
+                if input.KeyCode == Enum.KeyCode.W then
+                    bodyVelocity.Velocity = character.HumanoidRootPart.CFrame.LookVector * speed
+                elseif input.KeyCode == Enum.KeyCode.S then
+                    bodyVelocity.Velocity = -character.HumanoidRootPart.CFrame.LookVector * speed
+                elseif input.KeyCode == Enum.KeyCode.A then
+                    bodyVelocity.Velocity = -character.HumanoidRootPart.CFrame.RightVector * speed
+                elseif input.KeyCode == Enum.KeyCode.D then
+                    bodyVelocity.Velocity = character.HumanoidRootPart.CFrame.RightVector * speed
+                elseif input.KeyCode == Enum.KeyCode.Space then
+                    bodyVelocity.Velocity = Vector3.new(0, speed, 0)
+                elseif input.KeyCode == Enum.KeyCode.LeftControl then
+                    bodyVelocity.Velocity = Vector3.new(0, -speed, 0)
                 end
-                bodyVelocity.Velocity = moveDirection
-            end
-        end)
-
-        -- Kontrol rotasi
-        userInputService.InputChanged:Connect(function(input)
-            if flying and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local camera = game.Workspace.CurrentCamera
-                bodyGyro.CFrame = camera.CFrame
             end
         end)
     end
@@ -115,9 +112,62 @@ createButton("Noclip", function()
     end)
 end)
 
--- ESP button
+-- ESP button (Added a basic ESP)
 createButton("ESP", function()
-    loadstring(game:HttpGet("https://pastebin.com/raw/Jg1M3F3z"))()
+    local players = game:GetService("Players")
+    local espParts = {}
+
+    -- Creating ESP for all players in the game
+    for _, plr in pairs(players:GetPlayers()) do
+        if plr ~= player then
+            local espPart = Instance.new("BillboardGui")
+            espPart.Size = UDim2.new(0, 200, 0, 50)
+            espPart.Adornee = plr.Character:WaitForChild("Head")
+            espPart.Parent = game.CoreGui
+            espPart.StudsOffset = Vector3.new(0, 2, 0)
+
+            local label = Instance.new("TextLabel")
+            label.Text = plr.Name
+            label.Size = UDim2.new(1, 0, 1, 0)
+            label.TextColor3 = Color3.fromRGB(255, 0, 0)
+            label.BackgroundTransparency = 1
+            label.TextScaled = true
+            label.Parent = espPart
+
+            table.insert(espParts, espPart)
+        end
+    end
+
+    -- Updating ESP if players move
+    players.PlayerAdded:Connect(function(plr)
+        if plr ~= player then
+            local espPart = Instance.new("BillboardGui")
+            espPart.Size = UDim2.new(0, 200, 0, 50)
+            espPart.Adornee = plr.Character:WaitForChild("Head")
+            espPart.Parent = game.CoreGui
+            espPart.StudsOffset = Vector3.new(0, 2, 0)
+
+            local label = Instance.new("TextLabel")
+            label.Text = plr.Name
+            label.Size = UDim2.new(1, 0, 1, 0)
+            label.TextColor3 = Color3.fromRGB(255, 0, 0)
+            label.BackgroundTransparency = 1
+            label.TextScaled = true
+            label.Parent = espPart
+
+            table.insert(espParts, espPart)
+        end
+    end)
+
+    -- Cleanup when players leave
+    players.PlayerRemoving:Connect(function(plr)
+        for i, espPart in ipairs(espParts) do
+            if espPart.Adornee == plr.Character:FindFirstChild("Head") then
+                espPart:Destroy()
+                table.remove(espParts, i)
+            end
+        end
+    end)
 end)
 
 -- Xray button
