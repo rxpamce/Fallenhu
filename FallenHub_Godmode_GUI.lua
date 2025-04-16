@@ -106,37 +106,50 @@ end)
 
 -- Fly button
 createButton("Fly", function()
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    local humanoid = character:WaitForChild("Humanoid")
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    
     local flying = false
-    local speed = 50
+    local flySpeed = 50
     local bodyGyro = Instance.new("BodyGyro")
     local bodyVelocity = Instance.new("BodyVelocity")
 
-    local function startFlying()
-        if not flying then
-            flying = true
-            local character = game.Players.LocalPlayer.Character
-            local humanoid = character:WaitForChild("Humanoid")
-            bodyGyro.MaxTorque = Vector3.new(400000, 400000, 400000)
-            bodyGyro.CFrame = character.HumanoidRootPart.CFrame
-            bodyGyro.Parent = character.HumanoidRootPart
-            bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
-            bodyVelocity.Velocity = Vector3.new(0, speed, 0)
-            bodyVelocity.Parent = character.HumanoidRootPart
+    bodyGyro.MaxTorque = Vector3.new(400000, 400000, 400000)
+    bodyGyro.CFrame = humanoidRootPart.CFrame
+    bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
+
+    local function enableFly()
+        bodyGyro.Parent = humanoidRootPart
+        bodyVelocity.Parent = humanoidRootPart
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
+        flying = true
+    end
+
+    local function disableFly()
+        bodyGyro:Destroy()
+        bodyVelocity:Destroy()
+        flying = false
+    end
+
+    -- Fly logic
+    local function flyLoop()
+        while flying do
+            local moveDirection = Vector3.new(0, humanoid.MoveDirection.Y, 0) + humanoid.MoveDirection
+            bodyVelocity.Velocity = moveDirection * flySpeed
+            bodyGyro.CFrame = humanoidRootPart.CFrame
+            wait(0.1)
         end
     end
 
-    local function stopFlying()
-        if flying then
-            flying = false
-            bodyGyro:Destroy()
-            bodyVelocity:Destroy()
-        end
-    end
-
-    if flying then
-        stopFlying()
+    -- Toggle fly on/off
+    if not flying then
+        enableFly()
+        flyLoop()
     else
-        startFlying()
+        disableFly()
     end
 end)
 
