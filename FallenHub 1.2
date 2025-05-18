@@ -1,0 +1,348 @@
+local FallenHubGUI = Instance.new("ScreenGui")
+FallenHubGUI.Name = "FallenHub"
+FallenHubGUI.ResetOnSpawn = false
+FallenHubGUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+FallenHubGUI.DisplayOrder = 999999
+FallenHubGUI.IgnoreGuiInset = true
+FallenHubGUI.Parent = game.CoreGui
+
+local UIScale = Instance.new("UIScale")
+UIScale.Scale = 1
+UIScale.Parent = FallenHubGUI
+
+local function toggleButtonState(button, state)
+	button.BackgroundColor3 = state and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(30, 30, 30)
+end
+
+local function createToggleButton(parent, text)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, -10, 0, 30)
+	btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.Font = Enum.Font.Code
+	btn.TextSize = 16
+	btn.Text = text
+	btn.BorderSizePixel = 0
+	btn.Parent = parent
+	return btn
+end
+
+local function makeDraggable(frame)
+	local UIS = game:GetService("UserInputService")
+	local dragToggle, dragInput, dragStart, startPos
+	local function update(input)
+		local delta = input.Position - dragStart
+		frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+	frame.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragToggle = true
+			dragStart = input.Position
+			startPos = frame.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragToggle = false
+				end
+			end)
+		end
+	end)
+	frame.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement then
+			dragInput = input
+		end
+	end)
+	UIS.InputChanged:Connect(function(input)
+		if input == dragInput and dragToggle then
+			update(input)
+		end
+	end)
+end
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+mainFrame.Size = UDim2.new(0, 300, 0, 400)
+mainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
+mainFrame.Active = true
+mainFrame.Draggable = false
+mainFrame.Parent = FallenHubGUI
+makeDraggable(mainFrame)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundTransparency = 1
+title.Text = "Fallen Hub 1.2"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.Code
+title.TextSize = 18
+title.Parent = mainFrame
+
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(1, -10, 1, -60)
+scroll.Position = UDim2.new(0, 5, 0, 35)
+scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+scroll.ScrollBarThickness = 6
+scroll.BackgroundTransparency = 1
+scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scroll.Parent = mainFrame
+
+local list = Instance.new("UIListLayout")
+list.Padding = UDim.new(0, 5)
+list.SortOrder = Enum.SortOrder.LayoutOrder
+list.Parent = scroll
+
+local buttons = {}
+local xrayState = false
+local originalTransparency = {}
+local espState = false
+
+-- ESP Storage
+local espConnections = {}
+local function clearESP()
+	for _, v in ipairs(espConnections) do
+		v:Disconnect()
+	end
+	espConnections = {}
+	for _, obj in pairs(game:GetService("CoreGui"):GetChildren()) do
+		if obj.Name == "FallenESP" then
+			obj:Destroy()
+		end
+	end
+end
+
+local function toggleESP()
+	espState = not espState
+	clearESP()
+	if not espState then return end
+
+	local camera = workspace.CurrentCamera
+
+	local function createESPForPlayer(player)
+		local Box = Drawing.new("Square")
+		Box.Color = Color3.new(1, 0, 0)
+		Box.Thickness = 1
+		Box.Filled = false
+
+		local Name = Drawing.new("Text")
+		Name.Size = 16
+		Name.Color = Color3.new(1, 1, 1)
+		Name.Center = true
+		Name.Outline = true
+
+		local Distance = Drawing.new("Text")
+		Distance.Size = 14
+		Distance.Color = Color3.new(1, 1, 0)
+		Distance.Center = true
+		Distance.Outline = true
+
+		local conn = game:GetService("RunService").RenderStepped:Connect(function()
+			if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+				local hrp = player.Character.HumanoidRootPart
+				local pos, onscreen = camera:WorldToViewportPoint(hrp.Position)
+				if onscreen then
+					local size = 3
+					local head = player.Character:FindFirstChild("Head")
+					local feet = hrp.Position - Vector3.new(0, 3, 0)
+					local top, _ = camera:WorldToViewportPoint(head.Position)
+					local bottom, _ = camera:WorldToViewportPoint(feet)
+					local height = math.abs(top.Y - bottom.Y)
+					local width = height / 2
+
+					Box.Position = Vector2.new(pos.X - width / 2, pos.Y - height / 2)
+					Box.Size = Vector2.new(width, height)
+					Box.Visible = true
+
+					Name.Position = Vector2.new(pos.X, pos.Y - height / 2 - 15)
+					Name.Text = player.Name
+					Name.Visible = true
+
+					local distance = math.floor((camera.CFrame.Position - hrp.Position).Magnitude)
+					Distance.Position = Vector2.new(pos.X, pos.Y + height / 2 + 5)
+					Distance.Text = tostring(distance) .. " studs"
+					Distance.Visible = true
+				else
+					Box.Visible = false
+					Name.Visible = false
+					Distance.Visible = false
+				end
+			else
+				Box.Visible = false
+				Name.Visible = false
+				Distance.Visible = false
+			end
+		end)
+
+		table.insert(espConnections, conn)
+	end
+
+	for _, player in pairs(game.Players:GetPlayers()) do
+		if player ~= game.Players.LocalPlayer then
+			createESPForPlayer(player)
+		end
+	end
+
+	table.insert(espConnections, game.Players.PlayerAdded:Connect(function(player)
+		createESPForPlayer(player)
+	end))
+end
+
+-- Fly Script (tanpa animasi, toggle via F)
+local UIS = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+local flying = false
+local speed = 50
+local bodyGyro
+local bodyVelocity
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.E then
+		flying = not flying
+
+		if flying then
+			bodyGyro = Instance.new("BodyGyro")
+			bodyGyro.P = 9e4
+			bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+			bodyGyro.CFrame = humanoidRootPart.CFrame
+			bodyGyro.Parent = humanoidRootPart
+
+			bodyVelocity = Instance.new("BodyVelocity")
+			bodyVelocity.Velocity = Vector3.new(0,0,0)
+			bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+			bodyVelocity.Parent = humanoidRootPart
+
+			RunService.RenderStepped:Connect(function()
+				if flying then
+					bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+					bodyVelocity.Velocity = workspace.CurrentCamera.CFrame.lookVector * speed
+				end
+			end)
+		else
+			if bodyGyro then bodyGyro:Destroy() end
+			if bodyVelocity then bodyVelocity:Destroy() end
+		end
+	end
+end)
+
+-- Fitur GUI
+local teleportBox, speedBox
+local features = {
+	{"ESP", toggleESP},
+	{"Xray", function()
+		xrayState = not xrayState
+		for _,v in ipairs(workspace:GetDescendants()) do
+			if v:IsA("BasePart") and v.Transparency < 1 then
+				if xrayState then
+					originalTransparency[v] = v.Transparency
+					v.Transparency = 0.5
+				elseif originalTransparency[v] then
+					v.Transparency = originalTransparency[v]
+				end
+			end
+		end
+	end},
+	{"Noclip", function()
+		local char = game.Players.LocalPlayer.Character
+		game:GetService("RunService").Stepped:Connect(function()
+			for _, v in pairs(char:GetDescendants()) do
+				if v:IsA("BasePart") then
+					v.CanCollide = false
+				end
+			end
+		end)
+	end},
+	{"Teleport to Player", function()
+		local name = teleportBox.Text
+		local target = game.Players:FindFirstChild(name)
+		if target and target.Character then
+			game.Players.LocalPlayer.Character:MoveTo(target.Character.HumanoidRootPart.Position)
+		end
+	end},
+	{"WalkSpeed", function()
+		game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = tonumber(speedBox.Text)
+	end}
+}
+
+for _, data in ipairs(features) do
+	local name, action = unpack(data)
+	local btn = createToggleButton(scroll, name)
+	btn.MouseButton1Click:Connect(function()
+		toggleButtonState(btn, not (btn.BackgroundColor3 == Color3.fromRGB(50, 200, 50)))
+		pcall(action)
+	end)
+	table.insert(buttons, btn)
+end
+
+teleportBox = Instance.new("TextBox")
+teleportBox.Size = UDim2.new(1, -10, 0, 30)
+teleportBox.PlaceholderText = "Player Name"
+teleportBox.Font = Enum.Font.Code
+teleportBox.TextSize = 16
+teleportBox.TextColor3 = Color3.new(1,1,1)
+teleportBox.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+teleportBox.Text = ""
+teleportBox.Parent = scroll
+
+speedBox = teleportBox:Clone()
+speedBox.PlaceholderText = "WalkSpeed"
+speedBox.Text = ""
+speedBox.Parent = scroll
+
+-- Settings GUI
+local settingsBtn = createToggleButton(scroll, "Settings")
+local settingsGUI = Instance.new("Frame")
+settingsGUI.Size = UDim2.new(0, 200, 0, 100)
+settingsGUI.Position = UDim2.new(1, 10, 0, 35)
+settingsGUI.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+settingsGUI.Visible = false
+settingsGUI.Parent = mainFrame
+
+local slider = Instance.new("TextBox")
+slider.Size = UDim2.new(1, -10, 0, 30)
+slider.Position = UDim2.new(0, 5, 0, 5)
+slider.PlaceholderText = "Scale (1-5)"
+slider.Text = "1"
+slider.TextColor3 = Color3.new(1, 1, 1)
+slider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+slider.Font = Enum.Font.Code
+slider.TextSize = 16
+slider.Parent = settingsGUI
+
+slider.FocusLost:Connect(function()
+	local scale = tonumber(slider.Text)
+	if scale and scale >= 1 and scale <= 5 then
+		UIScale.Scale = scale
+	end
+end)
+
+settingsBtn.MouseButton1Click:Connect(function()
+	local active = not settingsGUI.Visible
+	settingsGUI.Visible = active
+	toggleButtonState(settingsBtn, active)
+end)
+
+-- Close Button + Logo Bulat
+local closeBtn = createToggleButton(scroll, "Close GUI")
+closeBtn.MouseButton1Click:Connect(function()
+	mainFrame.Visible = false
+	logo.Visible = true
+end)
+
+local logo = Instance.new("TextButton")
+logo.Size = UDim2.new(0, 80, 0, 80)
+logo.Position = UDim2.new(0.01, 0, 0.4, 0)
+logo.BackgroundColor3 = Color3.fromRGB(30,30,30)
+logo.Text = "FallenHub"
+logo.Visible = false
+logo.Parent = FallenHubGUI
+makeDraggable(logo)
+logo.MouseButton1Click:Connect(function()
+	mainFrame.Visible = true
+	logo.Visible = false
+end)
